@@ -1,0 +1,156 @@
+.temp-dot {
+  position: relative;
+  width: 16px;
+  height: 16px;
+}
+.temp-dot_layer1,
+.temp-dot_layer2,
+.temp-dot_layer3 {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  content: '';
+}
+.temp-dot_layer1 {
+  width: 8px;
+  height: 8px;
+  background: #cccccc;
+  z-index: 3;
+  animation: dot1TikTok linear 1.8s;
+}
+.temp-dot_layer2 {
+  z-index: 2;
+  animation: dot2TikTok linear 1.8s;
+}
+.temp-dot_layer3 {
+  z-index: 1;
+  animation: dot3TikTok linear 1.8s;
+}
+@keyframes dot1TikTok {
+  0% {
+    width: 8px;
+    height: 8px;
+    background: #cccccc;
+  }
+  17% {
+    width: 8px;
+    height: 8px;
+    background: #265cf0;
+  }
+  38% {
+    width: 10px;
+    height: 10px;
+    background: #265cf0;
+  }
+  50% {
+    width: 8px;
+    height: 8px;
+    background: #265cf0;
+  }
+  67% {
+    width: 10px;
+    height: 10px;
+    background: #265cf0;
+  }
+  78% {
+    width: 8px;
+    height: 8px;
+    background: #265cf0;
+  }
+  100% {
+    width: 8px;
+    height: 8px;
+    background: #265cf0;
+  }
+}
+@keyframes dot2TikTok {
+  0% {
+    width: 8px;
+    height: 8px;
+    background: #265cf0;
+    opacity: 0;
+  }
+  17% {
+    width: 12px;
+    height: 12px;
+    background: #265cf0;
+    opacity: 0;
+  }
+  38% {
+    // width: 12px;
+    // height: 12px;
+    // background: #265cf0;
+    // opacity: 0;
+  }
+  50% {
+    // width: 12px;
+    // height: 12px;
+    background: #265cf0;
+    opacity: 0.3;
+  }
+  67% {
+    width: 16px;
+    height: 16px;
+    background: #265cf0;
+    opacity: 0;
+  }
+  78% {
+    width: 16px;
+    height: 16px;
+    background: #265cf0;
+    opacity: 0;
+  }
+  100% {
+    width: 16px;
+    height: 16px;
+    background: #265cf0;
+    opacity: 0;
+  }
+}
+
+@keyframes dot3TikTok {
+  0% {
+    width: 8px;
+    height: 8px;
+    background: #265cf0;
+    opacity: 0;
+  }
+  17% {
+    width: 8px;
+    height: 8px;
+    background: #265cf0;
+    opacity: 0;
+  }
+  38% {
+    width: 8px;
+    height: 8px;
+    background: #265cf0;
+    opacity: 0;
+  }
+  50% {
+    width: 12px;
+    height: 12px;
+    background: #265cf0;
+    opacity: 0;
+  }
+  67% {
+    // width: 16px;
+    // height: 16px;
+    background: #265cf0;
+    opacity: 0;
+  }
+  78% {
+    width: 16px;
+    height: 16px;
+    background: #265cf0;
+    opacity: 0.3;
+  }
+  100% {
+    width: 16px;
+    height: 16px;
+    background: #265cf0;
+    opacity: 0;
+  }
+}
