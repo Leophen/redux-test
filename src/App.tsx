@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import store from '../../store/index'
+import store from './store/index'
 import './index.scss'
 
 const App = () => {

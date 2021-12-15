@@ -1,17 +1,15 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import ReduxTest from './components/ReduxTest'
-import Dot from './components/Dot'
+import App from './App'
 
-const App = () => {
+const Page = () => {
   return <>
-    <ReduxTest />
-    {/* <Dot /> */}
+    <App />
   </>;
 };
 
-ReactDOM.render(<App />, document.getElementById('root'));
+ReactDOM.render(<Page />, document.getElementById('root'));
 
 if (module.hot) {
   module.hot.accept(function () {
