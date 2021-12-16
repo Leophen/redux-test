@@ -1,265 +1,6 @@
 # Redux 起步项目
 
-## 一、Redux 的定义
-
-[Redux](http://cn.redux.js.org/) 是 JavaScript 应用的状态容器，提供可预测的状态管理。
-
-### 1、设计思想
-
-<img className="bottom16" src="http://tva1.sinaimg.cn/large/0068vjfvgy1gxdm4gwgpkg31400u0qv7.gif" width="600" referrerPolicy="no-referrer" />
-
-- Web 应用是一个状态机，视图与状态是一一对应的；
-- 所有的状态保存在一个对象中。
-
-### 2、应用场景
-
-当组件有以下场景时，可以考虑使用 Redux：
-
-- 某个组件的状态，需要共享
-- 某个状态需要在任何地方都可以拿到
-- 一个组件需要改变全局状态
-- 一个组件需要改变另一个组件的状态
-
-### 3、核心概念
-
-#### 3-1、Store
-
-Store 就是保存数据的地方，可以把它看成一个容器，整个应用只能有一个 Store。Redux 提供 `createStore` 函数来创建 Store。
-
-```js
-createStore(reducer, [preloadedState], [enhancer])
-```
-
-- `reducer` (*Function*): 接收两个参数，分别是当前的 state 树和要处理的 action，返回新的 state 树。
-- `preloadedState` (*any*): 初始时的 state。
-- `enhancer` (*Function*): 用于组合 store creator 的高阶函数，返回一个新的强化过的 store creator。可以用中间价、时间旅行、持久化等来增强 store。Redux 中唯一内置的 store enhander 是 `applyMiddleware()`。
-
-举个例子：
-
-```js
-import { createStore } from 'redux'
-const store = createStore(fn)
-```
-
-上面 `createStore` 接受另一个函数 fn 作为参数，返回新生成的 Store 对象。
-
-#### 3-2、State
-
-Store 对象包含所有数据，可以通过 `store.getState()` 拿到某个时点的数据，这种时点的数据集合，就叫做 *State*。
-
-```js
-import { createStore } from 'redux'
-const store = createStore(fn)
-
-const state = store.getState()
-```
-
-Redux 规定 一个 *State* 对应一个 View。只要 *State* 相同，View 就相同。
-
-#### 3-3、Action
-
-*State* 的变化，会导致 View 的变化。但用户接触不到 *State*，只能接触到 View。所以，*State* 的变化必须是 View 导致的。`Action` 就是 View 发出的通知，表示 State 应该要发生变化了。
-
-`Action` 是一个对象。其中的 `type` 属性是必须的，表示 `Action` 的名称。其他属性可以自由设置，社区有一个[规范](https://github.com/acdlite/flux-standard-action)可以参考。
-
-```js
-const action = {
-  type: 'ADD_TODO',
-  payload: 'Learn Redux'
-}
-```
-
-上面 `Action` 的名称是 *ADD_TODO*，它携带的信息是字符串 *Learn Redux*。
-
-可以这么理解，`Action` 描述当前发生的事情。改变 State 的唯一办法，就是使用 `Action`，它会运送数据到 Store。
-
-#### 3-4、Action Creator
-
-View 要发送多少种消息，就会有多少种 `Action`。如果都手写会很麻烦，可以定义一个函数来生成 `Action`，这个函数就叫 *Action Creator*。
-
-```js
-bindActionCreators(actionCreators, dispatch)
-```
-
-- `actionCreators` (*Function | Object*): 一个 *Action Creator*，或 value 是 *Action Creator* 的对象；
-- `dispatch` (*Function*): 一个由 Store 实例提供的 dispatch 函数。
-
-举个例子：
-
-TodoActionCreators.js：
-
-```js
-export function addTodo(text) {
-  return {
-    type: 'ADD_TODO',
-    text
-  }
-}
-
-export function removeTodo(id) {
-  return {
-    type: 'REMOVE_TODO',
-    id
-  }
-}
-```
-
-SomeComponent.js：
-
-```tsx
-import { Component } from 'react'
-import { bindActionCreators } from 'redux'
-import { connect } from 'react-redux'
-
-import * as TodoActionCreators from './TodoActionCreators'
-
-class TodoListContainer extends Component {
-  constructor(props) {
-    super(props)
-
-    const { dispatch } = props
-
-    this.boundActionCreators = bindActionCreators(TodoActionCreators, dispatch)
-    console.log(this.boundActionCreators)
-  }
-
-  componentDidMount() {
-    // 由 react-redux 注入的 dispatch：
-    let { dispatch } = this.props
-
-    // 注意：这样是行不通的：
-    // TodoActionCreators.addTodo('Use Redux')
-
-    // 你只是调用了创建 action 的方法。
-    // 你必须要同时 dispatch action。
-
-    // 这样做是可行的：
-    let action = TodoActionCreators.addTodo('Use Redux')
-    dispatch(action)
-  }
-
-  render() {
-    // 由 react-redux 注入的 todos：
-    let { todos } = this.props
-
-    return <TodoList todos={todos} {...this.boundActionCreators} />
-  }
-}
-
-export default connect((state) => ({ todos: state.todos }))(TodoListContainer)
-```
-
-上面 `addTodo` 函数就是一个 *Action Creator*。
-
-#### 3-5、dispatch
-
-`dispatch` 是 View 发出 Action 的唯一方法。
-
-```js
-import { createStore } from 'redux'
-const store = createStore(fn)
-
-store.dispatch({
-  type: 'ADD_TODO',
-  payload: 'Learn Redux'
-})
-```
-
-上面代码中，`store.dispatch` 接受一个 *Action* 对象作为参数，将它发送出去。
-
-结合 *Action Creator*，这段代码可以改写如下。
-
-```js
-store.dispatch(addTodo('Learn Redux'))
-```
-
-#### 3-6、Reducer
-
-Store 收到 *Action* 后，必须返回一个新的 *State*，这样 View 才会发生变化。这种 *State* 的计算过程就叫做 Reducer。
-
-Reducer 是一个函数，它接受 *Action* 和当前 *State* 作为参数，返回一个新的 *State*。
-
-```js
-const reducer = function (state, action) {
-  // ...
-  return new_state
-}
-```
-
-整个应用的初始状态，可以作为 *State* 的默认值。举个例子：
-
-```js
-const defaultState = 0
-const reducer = (state = defaultState, action) => {
-  switch (action.type) {
-    case 'ADD':
-      return state + action.payload
-    default:
-      return state
-  }
-}
-
-const state = reducer(1, {
-  type: 'ADD',
-  payload: 2
-})
-```
-
-上面 `reducer` 函数收到名为 `ADD` 的 *Action* 后，就返回一个新的 *State*，作为加法的计算结果。
-
-实际应用中，Reducer 函数不用像上面这样手动调用，`store.dispatch` 方法会触发 Reducer 的自动执行。为此 Store 需要知道 Reducer 函数，做法就是在生成 Store 时将 Reducer 传入 `createStore` 方法：
-
-```js
-import { createStore } from 'redux'
-const store = createStore(reducer)
-```
-
-上面 `createStore` 接受 Reducer 作为参数，生成一个新的 Store。以后每当 `store.dispatch` 发来一个新的 *Action* 就会自动调用 Reducer，得到新的 *State*。
-
-**注意：**由于 Reducer 是[纯函数](./6633767148660)，可以保证相同的 State 必定得到相同的 View。但也因为这一点，Reducer 函数中不能改变 *State*，必须返回一个全新的对象：
-
-```js
-// State 是一个对象
-function reducer(state, action) {
-  return Object.assign({}, state, { thingToChange })
-  // 或
-  return { ...state, ...newState }
-}
-
-// State 是一个数组
-function reducer(state, action) {
-  return [...state, newItem]
-}
-```
-
-最好把 *State* 对象设为只读，要得到新的 *State*，唯一办法就是生成一个新对象。这样的好处是，任何时候与某个 View 对应的 *State* 总是一个不变的对象。
-
-#### 3-7、subscribe
-
-Store 允许使用 `subscribe` 方法设置监听函数，一旦 State 发生变化，就自动执行这个函数。
-
-```js
-import { createStore } from 'redux'
-const store = createStore(reducer)
-
-store.subscribe(listener)
-```
-
-只要把 View 的更新函数放入 listener，就可以实现 View 的自动渲染。
-
-`store.subscribe(listener)` 方法返回一个函数，调用这个函数就可以解除监听。
-
-```js
-let unsubscribe = store.subscribe(
-  () => console.log(store.getState())
-)
-
-unsubscribe()
-```
-
-## 二、Redux 的使用
-
-### 1、安装
+## 一、安装
 
 ```bash
 # npm
@@ -269,7 +10,7 @@ npm install redux
 yarn add redux
 ```
 
-### 2、基本用法
+## 二、基本用法
 
 下面用 Redux 实现一个简单的计数器：
 
@@ -351,9 +92,9 @@ export default App
 
 <img src="http://tva1.sinaimg.cn/large/0068vjfvgy1gxdmioeiy7g30ie040jv8.gif" width="220" referrerPolicy="no-referrer" />
 
-### 3、写法优化
+## 三、store 结构优化
 
-#### 3-1、分离出 Reducer
+### 1、分离出 Reducer
 
 将 reducer 单独分离出来，方便管理：
 
@@ -392,7 +133,7 @@ export default function reducer(state = defaultState, action) {
 }
 ```
 
-#### 3-2、分离出 action 处理逻辑
+### 2、分离出 action 处理逻辑
 
 将 Reducer 中的判断及逻辑处理分离，方便管理：
 
@@ -482,7 +223,7 @@ export default function reducer(state = defaultState, action) {
 }
 ```
 
-#### 3-3、分离出 actionTypes
+### 3、分离出 actionTypes
 
 action 拥有一个不变的 type 以便 reducer 能够识别它们，这个 *action type* 建议定义为 string 常量。例如：
 
@@ -529,7 +270,7 @@ export default function reducer(state = defaultState, action) {
 }
 ```
 
-#### 3-4、使用 combineReducers 拆分 reducers
+### 4、使用 combineReducers 拆分 reducers
 
 随着项目变得越来越复杂，可以将 reducer 函数拆分成多个函数来独立管理 *state* 的一部分。
 
@@ -663,11 +404,164 @@ const App = () => {
 export default App
 ```
 
+### 5、全局注入 store
 
+上面是直接在组件中 `import` store，也可以直接在最外层容器组件中初始化 store，然后将 state 上的属性作为 props 层层传递下去。但更好的方法是使用 [react-redux](https://react-redux.js.org/) 提供的 Provider 全局注入。
 
+首先安装 react-redux 库：
 
-#### 3-4、使用 @reduxjs/toolkit 优化写法
+```bash
+# npm
+npm install react-redux
 
-#### 3-6、全局注入 store
+# yarn
+yarn add react-redux
+```
 
+在入口文件引入 store *▼*
 
+**src/index.js：**
+
+```diff
+  import React from 'react';
+  import ReactDOM from 'react-dom';
+  import App from './App'
++ import store from './store'
++ import { Provider } from 'react-redux'
+
+  ReactDOM.render(
++   <Provider store={store}>
+      <App />
++   </Provider>,
+    document.getElementById('root')
+  )
+```
+
+在组件中使用 store *▼*
+
+**src/App.js：**
+
+```tsx
+import React from 'react'
+// import store from './store/index'
+import { useSelector, useDispatch } from 'react-redux'
+
+const App = () => {
+  // const curCount = store.getState().counter.count
+  // const [count, setCount] = useState(curCount)
+  const count = useSelector((state) => state.counter.count)
+  const dispatch = useDispatch()
+
+  const handleAddCount = () => {
+    // store.dispatch({
+    // type: 'ADD_COUNT'
+    // })
+    // setCount(store.getState().counter.count)
+    dispatch({ type: 'ADD_COUNT' })
+  }
+
+  const handleSubCount = () => {
+    // store.dispatch({
+    // type: 'SUB_COUNT'
+    // })
+    // setCount(store.getState().counter.count)
+    dispatch({ type: 'SUB_COUNT' })
+  }
+
+  const handleMultiCount = () => {
+    // store.dispatch({
+    // type: 'MULTI_COUNT',
+    // payload: store.getState().counter.count
+    // })
+    // setCount(store.getState().counter.count)
+    dispatch({ type: 'MULTI_COUNT', payload: count })
+  }
+
+  return (
+    <div>
+      <button onClick={handleAddCount}>+1</button>
+      <button onClick={handleSubCount}>-1</button>
+      <button onClick={handleMultiCount}>× last</button>
+      <span>{count}</span>
+    </div>
+  )
+}
+
+export default App
+```
+
+**注意：**如果使用 TS 的话，可能会出现以下错误：
+
+<img src="http://tva1.sinaimg.cn/large/0068vjfvgy1gxfnlonvz2j31dy060wkz.jpg" width="777" referrerPolicy="no-referrer" />
+
+需要做以下处理 *▼*
+
+**src/store/index.ts：**
+
+```diff
+  import { createStore } from 'redux'
+  import reducers from './reducers/index'
+
+  const store = createStore(reducers)
+  export default store
+
++ export type RootState = ReturnType<typeof store.getState>
++ export type AppDispatch = typeof store.dispatch
+```
+
+然后新建 hooks 文件 *▼*
+
+**src/store/hooks.ts：**
+
+```ts
+import type { TypedUseSelectorHook} from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux'
+import type { RootState, AppDispatch } from './index'
+
+// Use throughout your app instead of plain `useDispatch` and `useSelector`
+export const useAppDispatch = () => useDispatch<AppDispatch>()
+export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector
+```
+
+在组件引入新声明的 hooks *▼*
+
+**src/App.tsx：**
+
+```tsx
+import React from 'react'
+import './index.scss'
+// import { useSelector, useDispatch } from 'react-redux'
+import { useAppSelector, useAppDispatch } from './store/hooks'
+
+const App = () => {
+  // const count = useSelector((state) => state.counter.count)
+  const count = useAppSelector((state) => state.counter.count)
+  // const dispatch = useDispatch()
+  const dispatch = useAppDispatch()
+
+  const handleAddCount = () => {
+    dispatch({ type: 'ADD_COUNT' })
+  }
+
+  const handleSubCount = () => {
+    dispatch({ type: 'SUB_COUNT' })
+  }
+
+  const handleMultiCount = () => {
+    dispatch({ type: 'MULTI_COUNT', payload: count })
+  }
+
+  return (
+    <div>
+      <button onClick={handleAddCount}>+1</button>
+      <button onClick={handleSubCount}>-1</button>
+      <button onClick={handleMultiCount}>× last</button>
+      <span>{count}</span>
+    </div>
+  )
+}
+
+export default App
+```
+
+react-redux 还可以使用 [useStore](https://react-redux.js.org/api/hooks#usestore) 的 Hook 来引入 store，然后进行原始的 store 操作。
