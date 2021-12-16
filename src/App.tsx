@@ -1,31 +1,26 @@
-import React, { useState } from 'react'
-import store from './store/index'
+import React from 'react'
 import './index.scss'
+import { useStore } from 'react-redux'
+import { useAppSelector, useAppDispatch } from './store/hooks'
 
 const App = () => {
-  const curCount = store.getState().counter.count
-  const [count, setCount] = useState(curCount)
+  // const count = useSelector((state) => state.counter.count)
+  const count = useAppSelector((state) => state.counter.count)
+  // const dispatch = useDispatch()
+  const dispatch = useAppDispatch()
+  const store = useStore()
+  console.log(store)
 
   const handleAddCount = () => {
-    store.dispatch({
-      type: 'ADD_COUNT'
-    })
-    setCount(store.getState().counter.count)
+    dispatch({ type: 'ADD_COUNT' })
   }
 
   const handleSubCount = () => {
-    store.dispatch({
-      type: 'SUB_COUNT'
-    })
-    setCount(store.getState().counter.count)
+    dispatch({ type: 'SUB_COUNT' })
   }
 
   const handleMultiCount = () => {
-    store.dispatch({
-      type: 'MULTI_COUNT',
-      payload: store.getState().counter.count
-    })
-    setCount(store.getState().counter.count)
+    dispatch({ type: 'MULTI_COUNT', payload: count })
   }
 
   return (
